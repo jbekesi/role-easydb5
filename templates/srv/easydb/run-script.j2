@@ -4,8 +4,9 @@
 
 docker run -d -ti \
     --security-opt seccomp=unconfined \
-    --name {{ easydb_containers[easydb_container].container_name }} \
+    --name {{ easydb_containers[easydb_container].container_name }}-{{ short_name }} \
     --restart=always \
+    --net-alias {{ easydb_containers[easydb_container].container_name }} \
     --net {{ easydb_container_network }} \
 {% for volume in easydb_containers[easydb_container].volumes | default([]) %}
     --volume {{ volume }} \
@@ -17,3 +18,4 @@ docker run -d -ti \
     --add-host "{{ host }}":{{ easydb_etc_hosts[inventory_hostname][host] }} \
 {% endfor %}
     {{ easydb_containers[easydb_container].image | default([]) }}
+{# net-alias for keeping the original name within the easydb_container_network #}

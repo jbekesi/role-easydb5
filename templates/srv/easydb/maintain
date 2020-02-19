@@ -33,6 +33,8 @@ DBS="{{ easydb_dump_dbs }}"
 KEEPDBS={{ easydb_dump_keep }}
 # Where to write log messages to while doing update-auto:
 UPDATELOG={{ easydb_cron_update_log }}
+FLTR=" --filter network={{ easydb_container_network }}"
+
 
 # read local values:
 [ -e /etc/default/easydb5 ] && . /etc/default/easydb5
@@ -60,39 +62,22 @@ start)
 {% endif %}
     ;;
 stop)
-    if /usr/bin/docker ps -a | grep -q easydb-webfrontend; then
-        /usr/bin/docker stop  easydb-webfrontend
-        /usr/bin/docker rm -v easydb-webfrontend
+    for CONT in webfrontend server eas elasticsearch pgsql;
+        do
+            if /usr/bin/docker ps -a $FLTR | grep -q easydb-$CONT-{{ short_name }}; then
+                ID=$(docker ps -a --filter network={{ easydb_container_network }} | grep $CONT | awk '{print $1}')
+                /usr/bin/docker stop  $ID
+                /usr/bin/docker rm -v $ID
+                fi
+        done
+    if /usr/bin/docker ps -a $FLTR | grep -q easydb-server-{{ easydb_solution }}; then
+        /usr/bin/docker stop  $ID
+        /usr/bin/docker rm -v $ID
     fi
 
-    if /usr/bin/docker ps -a | grep -q easydb-server-{{ easydb_solution }}; then
-        /usr/bin/docker stop  easydb-server-{{ easydb_solution }}
-        /usr/bin/docker rm -v easydb-server-{{ easydb_solution }}
-    fi
-
-    if /usr/bin/docker ps -a | grep -q easydb-server; then
-        /usr/bin/docker stop  easydb-server
-        /usr/bin/docker rm -v easydb-server
-    fi
-
-    if /usr/bin/docker ps -a | grep -q easydb-eas; then
-        /usr/bin/docker stop  easydb-eas
-        /usr/bin/docker rm -v easydb-eas
-    fi
-
-    if /usr/bin/docker ps -a | grep -q easydb-elasticsearch; then
-        /usr/bin/docker stop  easydb-elasticsearch
-        /usr/bin/docker rm -v easydb-elasticsearch
-    fi
-
-    if /usr/bin/docker ps -a | grep -q easydb-fylr; then
+    if /usr/bin/docker ps -a $FLTR | grep -q easydb-fylr; then
         /usr/bin/docker stop  easydb-fylr >/dev/null 2>&1
         /usr/bin/docker rm -v easydb-fylr >/dev/null 2>&1
-    fi
-
-    if /usr/bin/docker ps -a | grep -q easydb-pgsql; then
-        /usr/bin/docker stop  easydb-pgsql
-        /usr/bin/docker rm -v easydb-pgsql
     fi
 ;;
 restart)
@@ -100,7 +85,7 @@ restart)
     $0 start
 ;;
 status)
-    docker ps
+    docker ps $FLTR
 ;;
 update)
 {% if 'pgsql' in easydb_containers_on_host[inventory_hostname] %}
@@ -149,7 +134,7 @@ backup)
     # do sql backup of all sql dbs $DBS (one per instance and one for eas)
     # Note: there are only $KEEPDBS kept - repeating this quickly removes all old backups (on this host) !
     cd $BASEDIR/pgsql/backup          || exit 2
-    /usr/bin/docker ps|grep -q 'easydb-pgsql$' || exit 3
+    /usr/bin/docker ps $FLTR |grep -q 'easydb-pgsql$' || exit 3
     for DB in $DBS; do
             $0 sqldump $DB            || exit 4
     done
@@ -160,7 +145,7 @@ sqldump)
     DB="$2"
     TIME=`date +%Y-%m-%d_%Hh%Mm%Ss`
     FILE=$DB."$TIME".pgdump
-    /usr/bin/docker exec easydb-pgsql pg_dump -U postgres -v -Fc -f /backup/$FILE $DB > $FILE.log 2>&1
+    /usr/bin/docker exec easydb-pgsql-{{ short_name }} pg_dump -U postgres -v -Fc -f /backup/$FILE $DB > $FILE.log 2>&1
     EXCODE=$?
     if [ $EXCODE -gt 0 ] ; then
         rm $FILE &>/dev/null

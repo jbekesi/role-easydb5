@@ -39,15 +39,17 @@
 
 - name: stopping container (if running)
   when: has_config_changed.changed or has_new_config_changed.changed
-  shell: docker stop easydb-{{ easydb_container }}
+  shell: docker stop easydb-{{ easydb_container }}-{{ short_name }}
   failed_when: no
 
 - name: spinning up container
   docker_container:
-    name: "{{ easydb_containers[easydb_container].container_name }}"
+    name: "{{ easydb_containers[easydb_container].container_long_name }}"
     image: "{{ easydb_containers[easydb_container].image }}"
     networks:
       - name: "{{ easydb_containers[easydb_container].network | default(easydb_container_network) }}"
+        aliases:
+          - "{{ easydb_containers[easydb_container].container_name }}"
     restart_policy: "{{ easydb_containers[easydb_container].restart_policy | default('always') }}"
     ports: "{{ easydb_containers[easydb_container].ports | default([]) }}"
     volumes: "{{ easydb_containers[easydb_container].volumes | default([]) }}"

@@ -11,13 +11,19 @@ easydb_docker_pass: ''
 easydb_docker_registry: docker.easydb.de
 easydb_container_network: easydb5
 easydb_etc_hosts: {}
-# docker container names
+# docker container internal names
 easydb_server_container_name: easydb-server
 easydb_pgsql_container_name: easydb-pgsql
 easydb_eas_container_name: easydb-eas
 easydb_fylr_container_name: easydb-fylr
 easydb_elasticsearch_container_name: easydb-elasticsearch
 easydb_webfrontend_container_name: easydb-webfrontend
+# docker container names
+easydb_server_container_long_name: easydb-server
+easydb_pgsql_container_long_name: easydb-pgsql
+easydb_eas_container_long_name: easydb-eas
+easydb_elasticsearch_long_container_name: easydb-elasticsearch
+easydb_webfrontend_container_long_name: easydb-webfrontend
 
 ### ENDPOINTS ###
 # PGSQL
@@ -80,6 +86,7 @@ easydb_containers:
   pgsql:
     image: "{{ easydb_docker_registry }}/pf/postgresql"
     container_name: "{{ easydb_pgsql_container_name }}"
+    container_long_name: "{{ easydb_pgsql_container_long_name }}"
     volumes:
       - "{{ easydb_volume_config }}:/config"
       - "{{ easydb_pgsql_volume_backup }}:/backup"
@@ -94,6 +101,7 @@ easydb_containers:
   server:
     image: "{{ easydb_docker_registry }}/pf/server-{{ easydb_solution }}"
     container_name: "{{ easydb_server_container_name }}"
+    container_long_name: "{{ easydb_server_container_long_name }}"
     volumes:
       - "{{ easydb_volume_config }}:/config"
       - "{{ easydb_server_volume_var }}:/easydb-5/var"
@@ -107,6 +115,7 @@ easydb_containers:
   eas:
     image: "{{ easydb_docker_registry }}/pf/eas"
     container_name: "{{ easydb_eas_container_name }}"
+    container_long_name: "{{ easydb_eas_container_long_name }}"
     volumes:
       - "{{ easydb_volume_config }}:/config"
       - "{{ easydb_eas_volume_assets }}:/var/opt/easydb/lib/eas/assets"
@@ -131,6 +140,7 @@ easydb_containers:
   elasticsearch:
     image: "{{ easydb_docker_registry }}/pf/elasticsearch"
     container_name: "{{ easydb_elasticsearch_container_name }}"
+    container_long_name: "{{ easydb_elasticsearch_container_long_name }}"
     volumes:
       - "{{ easydb_volume_config }}:/config"
       - "{{ easydb_elasticsearch_volume_var }}:/var/lib/elasticsearch"
@@ -143,6 +153,7 @@ easydb_containers:
   webfrontend:
     image: "{{ easydb_docker_registry }}/pf/webfrontend"
     container_name: "{{ easydb_webfrontend_container_name }}"
+    container_long_name: "{{ easydb_webfrontend_container_long_name }}"
     volumes:
       - "{{ easydb_volume_config }}:/config"
     ports:
