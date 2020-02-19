@@ -33,6 +33,7 @@ DBS="{{ easydb_dump_dbs }}"
 KEEPDBS={{ easydb_dump_keep }}
 # Where to write log messages to while doing update-auto:
 UPDATELOG={{ easydb_cron_update_log }}
+FILTR=" --filter network={{ easydb_container_network }}"
 
 # read local values:
 [ -e /etc/default/easydb5 ] && . /etc/default/easydb5
@@ -58,14 +59,14 @@ start)
 {% if 'fylr' in easydb_containers_on_host[inventory_hostname] %}
     $BASEDIR/run-fylr.sh
 {% endif %}
-    ;;
+    ;; # --filter network={{ easydb_container_network }}
 stop)
-    if /usr/bin/docker ps -a | grep -q easydb-webfrontend-{{ short_name }}; then
+    if /usr/bin/docker ps -a $FILTR | grep -q easydb-webfrontend-{{ short_name }}; then
         /usr/bin/docker stop  easydb-webfrontend-{{ short_name }}
         /usr/bin/docker rm -v easydb-webfrontend-{{ short_name }}
     fi
 
-    if /usr/bin/docker ps -a | grep -q easydb-server-{{ short_name }}; then
+    if /usr/bin/docker ps -a $FILTR | grep -q easydb-server-{{ short_name }}; then
         /usr/bin/docker stop  easydb-server-{{ short_name }}
         /usr/bin/docker rm -v easydb-server-{{ short_name }}
     fi
@@ -76,22 +77,22 @@ stop)
 #        /usr/bin/docker rm -v easydb-server
 #    fi
 
-    if /usr/bin/docker ps -a | grep -q easydb-eas; then
+    if /usr/bin/docker ps -a  $FILTR | grep -q easydb-eas; then
         /usr/bin/docker stop  easydb-eas
         /usr/bin/docker rm -v easydb-eas
     fi
 
-    if /usr/bin/docker ps -a | grep -q easydb-elasticsearch; then
+    if /usr/bin/docker ps -a  $FILTR | grep -q easydb-elasticsearch; then
         /usr/bin/docker stop  easydb-elasticsearch
         /usr/bin/docker rm -v easydb-elasticsearch
     fi
 
-    if /usr/bin/docker ps -a | grep -q easydb-fylr; then
+    if /usr/bin/docker ps -a $FILTR | grep -q easydb-fylr; then
         /usr/bin/docker stop  easydb-fylr >/dev/null 2>&1
         /usr/bin/docker rm -v easydb-fylr >/dev/null 2>&1
     fi
 
-    if /usr/bin/docker ps -a | grep -q easydb-pgsql; then
+    if /usr/bin/docker ps -a $FILTR | grep -q easydb-pgsql; then
         /usr/bin/docker stop  easydb-pgsql
         /usr/bin/docker rm -v easydb-pgsql
     fi
@@ -101,7 +102,7 @@ restart)
     $0 start
 ;;
 status)
-    docker ps
+    docker ps $FILTR
 ;;
 update)
 {% if 'pgsql' in easydb_containers_on_host[inventory_hostname] %}
