@@ -60,7 +60,7 @@ start)
 {% if 'fylr' in easydb_containers_on_host[inventory_hostname] %}
     $BASEDIR/run-fylr.sh
 {% endif %}
-    ;;
+    ;; # --filter network={{ easydb_container_network }}
 stop)
     for CONT in webfrontend server eas elasticsearch pgsql;
         do
@@ -86,6 +86,7 @@ restart)
 ;;
 status)
     docker ps $FLTR
+
 ;;
 update)
 {% if 'pgsql' in easydb_containers_on_host[inventory_hostname] %}
